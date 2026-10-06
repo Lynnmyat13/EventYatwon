@@ -398,6 +398,16 @@ The scanner verifies that the ticket belongs to the selected event and is active
 
 Administrator accounts are created through the private administration process, not public registration. The server protects every admin endpoint with authentication and the admin role.
 
+### Sign in as administrator
+
+1. Open **Log in**.
+2. Enter `admin@gmail.com` as the email address.
+3. Enter the administrator password supplied privately by the system owner.
+4. Select **Log in**.
+5. Open the account menu and select **Admin dashboard**.
+
+The Admin Dashboard provides access to **Overview**, **Users**, **Events**, and **Categories**. Do not publish or commit the administrator password. If a password has been shared publicly, change it before deploying the application.
+
 ### Admin Overview
 
 The Overview page displays platform totals for:
