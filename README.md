@@ -1,4 +1,5 @@
 # EventYatwon
+<<<<<<< HEAD
 
 EventYatwon is a full-stack event discovery, registration, digital ticketing, and event-management platform. It supports public event browsing, attendee registration and QR tickets, organizer operations and analytics, and role-protected administration.
 
@@ -242,3 +243,6 @@ npm run build
 ```
 
 These commands do not seed or modify MongoDB data.
+=======
+EventYatwon is a full-stack event management platform featuring event discovery, registration, QR code ticketing, attendee check-in, personalized recommendations, event reviews, organizer analytics, and admin dashboards. Built with React, TypeScript, Node.js, Express, and MongoDB.
+>>>>>>> eb44688ac87d91a4387cb7257b5428541b715b4a
