@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_PROFILE_IMAGE } from "@/lib/avatar";
 import { queryKeys } from "@/lib/query-keys";
 import { getEventErrorMessage, getPublicOrganizer } from "@/services/events";
 import { getMyFavorites } from "@/services/favorites";
@@ -67,12 +68,6 @@ export function OrganizerProfilePage() {
   }
 
   const { organizer, events, stats } = profileQuery.data;
-  const initials = organizer.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
   const favoriteIds = new Set(
     (favoritesQuery.data ?? []).map((favorite) =>
       typeof favorite.event === "string" ? favorite.event : favorite.event._id,
@@ -84,17 +79,11 @@ export function OrganizerProfilePage() {
       <section className="bg-muted/35 border-b">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[auto_minmax(0,1fr)] md:items-center lg:px-8 lg:py-16">
           <div className="bg-card grid size-28 overflow-hidden rounded-full border sm:size-36">
-            {organizer.avatar ? (
-              <img
-                src={organizer.avatar}
-                alt={`${organizer.name} profile`}
-                className="size-full object-cover"
-              />
-            ) : (
-              <span className="text-primary m-auto text-3xl font-semibold">
-                {initials}
-              </span>
-            )}
+            <img
+              src={organizer.avatar || DEFAULT_PROFILE_IMAGE}
+              alt={`${organizer.name} profile`}
+              className="size-full object-cover"
+            />
           </div>
           <div>
             <p className="text-primary text-sm font-semibold">

@@ -21,6 +21,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_PROFILE_IMAGE } from "@/lib/avatar";
 import { cn } from "@/lib/utils";
 import type { NavigationItem } from "@/types/navigation";
 
@@ -40,13 +41,6 @@ export function Navbar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { user, isLoading, logout } = useAuth();
   const navigate = useNavigate();
-  const initials = (user?.name ?? "User")
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-
   useEffect(() => {
     if (!isSearchOpen) return;
 
@@ -150,17 +144,11 @@ export function Navbar() {
                   title="Account settings"
                 >
                   <div className="grid size-9 overflow-hidden rounded-full border border-zinc-700 bg-zinc-900">
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={`${user.name} profile`}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <span className="m-auto text-xs font-semibold text-white">
-                        {initials}
-                      </span>
-                    )}
+                    <img
+                      src={user.avatar || DEFAULT_PROFILE_IMAGE}
+                      alt={`${user.name} profile`}
+                      className="size-full object-cover"
+                    />
                   </div>
                 </Link>
                 <details

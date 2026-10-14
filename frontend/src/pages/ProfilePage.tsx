@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_PROFILE_IMAGE } from "@/lib/avatar";
 import {
   getApiErrorMessage,
   removeAvatar,
@@ -133,13 +134,6 @@ export function ProfilePage() {
 
   const hasProfileChanges =
     name.trim() !== user?.name || email.trim() !== user?.email;
-  const initials = (user?.name ?? "User")
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -181,17 +175,11 @@ export function ProfilePage() {
 
             <div className="group relative mx-auto size-36 sm:size-40 md:mx-0 md:justify-self-end">
               <div className="bg-muted size-full overflow-hidden rounded-full border">
-                {preview || user?.avatar ? (
-                  <img
-                    src={preview || user?.avatar || undefined}
-                    alt={`${user?.name ?? "User"} profile`}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="text-primary grid size-full place-items-center text-4xl font-semibold">
-                    {initials}
-                  </div>
-                )}
+                <img
+                  src={preview || user?.avatar || DEFAULT_PROFILE_IMAGE}
+                  alt={`${user?.name ?? "User"} profile`}
+                  className="size-full object-cover"
+                />
               </div>
               <button
                 type="button"

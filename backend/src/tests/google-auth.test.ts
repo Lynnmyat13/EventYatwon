@@ -66,6 +66,7 @@ test("creates new Google accounts as attendees without a password", async () => 
   assert.equal(result.user.role, "attendee");
   assert.equal(created?.googleId, identity.subject);
   assert.equal(created?.password, undefined);
+  assert.equal(created?.avatar, undefined);
 });
 
 test("preserves the role of an existing linked account", async () => {

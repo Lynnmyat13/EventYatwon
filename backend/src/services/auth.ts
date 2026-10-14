@@ -108,7 +108,6 @@ export const loginWithGoogle = async (
       name,
       email: identity.email,
       googleId: identity.subject,
-      avatar: identity.picture,
       role: "attendee",
     });
     return { token: createAccessToken(user.id, user.role), user };
@@ -151,7 +150,6 @@ export const linkGoogleAccount = async (
   }
 
   user.googleId = identity.subject;
-  if (!user.avatar && identity.picture) user.avatar = identity.picture;
 
   try {
     return await user.save();
