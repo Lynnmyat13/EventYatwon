@@ -5,7 +5,8 @@ export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login(input: LoginInput): Promise<User>;
+  login(input: LoginInput, googleCredential?: string): Promise<User>;
+  loginWithGoogle(credential: string): Promise<User>;
   register(input: RegisterInput): Promise<User>;
   logout(): Promise<void>;
   refreshUser(): Promise<void>;

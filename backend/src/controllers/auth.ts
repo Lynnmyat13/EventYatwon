@@ -2,7 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 import type { AuthenticatedRequest } from "../middleware/auth";
 import {
   getUserById,
+  linkGoogleAccount,
   loginUser,
+  loginWithGoogle,
   registerUser,
   removeUserAvatar,
   replaceUserAvatar,
@@ -87,6 +89,51 @@ export const login = async (
     sendSuccess(res, 200, "Login successful", {
       token: result.token,
       user: toPublicUser(result.user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getGoogleCredential = (req: Request): string => {
+  const body = req.body as Record<string, unknown> | undefined;
+  const credential = body?.credential;
+  if (typeof credential !== "string" || credential.length === 0) {
+    throw new HttpError(400, "Google credential is required");
+  }
+  return credential;
+};
+
+export const googleLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await loginWithGoogle(getGoogleCredential(req));
+    sendSuccess(res, 200, "Google authentication successful", {
+      token: result.token,
+      user: toPublicUser(result.user),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const linkGoogle = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const auth = (req as AuthenticatedRequest).auth;
+    if (!auth) throw new HttpError(401, "Authentication required");
+    const user = await linkGoogleAccount(
+      auth.userId,
+      getGoogleCredential(req),
+    );
+    sendSuccess(res, 200, "Google account linked", {
+      user: toPublicUser(user),
     });
   } catch (error) {
     next(error);

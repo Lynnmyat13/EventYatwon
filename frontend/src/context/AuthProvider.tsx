@@ -13,7 +13,9 @@ import {
   clearAccessToken,
   getAccessToken,
   getCurrentUser,
+  linkGoogleAccount,
   login as loginRequest,
+  loginWithGoogle as googleLoginRequest,
   logout as logoutRequest,
   register as registerRequest,
   setAccessToken,
@@ -76,8 +78,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession]);
 
   const login = useCallback(
-    async (input: LoginInput) => {
+    async (input: LoginInput, googleCredential?: string) => {
       const data = await loginRequest(input);
+      removePrivateQueries(queryClient);
+      setAccessToken(data.token);
+      try {
+        const authenticatedUser = googleCredential
+          ? await linkGoogleAccount(googleCredential)
+          : data.user;
+        setUser(authenticatedUser);
+        return authenticatedUser;
+      } catch (error) {
+        clearAccessToken();
+        throw error;
+      }
+    },
+    [queryClient],
+  );
+
+  const loginWithGoogle = useCallback(
+    async (credential: string) => {
+      const data = await googleLoginRequest(credential);
       removePrivateQueries(queryClient);
       setAccessToken(data.token);
       setUser(data.user);
@@ -115,11 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user),
       isLoading,
       login,
+      loginWithGoogle,
       register,
       logout,
       refreshUser,
     }),
-    [isLoading, login, logout, refreshUser, register, user],
+    [isLoading, login, loginWithGoogle, logout, refreshUser, register, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,8 @@
 import { createAccessToken } from "../config/auth";
+import {
+  verifyGoogleIdToken,
+  type GoogleTokenVerifier,
+} from "../config/google";
 import { User, type IUser, type UserRole } from "../models";
 import { HttpError } from "../utils/http";
 import { AVATAR_IMAGE_FOLDER, deleteImage, uploadImage } from "./images";
@@ -64,6 +68,99 @@ export const loginUser = async (
   }
 
   return { token: createAccessToken(user.id, user.role), user };
+};
+
+const googleAccountConflict = (): HttpError =>
+  new HttpError(
+    409,
+    "An account with this email already exists. Log in with your password to link Google.",
+    "GOOGLE_ACCOUNT_LINK_REQUIRED",
+  );
+
+export const loginWithGoogle = async (
+  idToken: string,
+  verifyToken: GoogleTokenVerifier = verifyGoogleIdToken,
+): Promise<AuthResult> => {
+  const identity = await verifyToken(idToken);
+  const linkedUser = await User.findOne({ googleId: identity.subject });
+
+  if (linkedUser) {
+    if (!linkedUser.isActive) {
+      throw new HttpError(403, "This account is inactive");
+    }
+    return {
+      token: createAccessToken(linkedUser.id, linkedUser.role),
+      user: linkedUser,
+    };
+  }
+
+  if (await User.exists({ email: identity.email })) {
+    throw googleAccountConflict();
+  }
+
+  const name =
+    identity.name.length >= 2
+      ? identity.name.slice(0, 100)
+      : "Google user";
+
+  try {
+    const user = await User.create({
+      name,
+      email: identity.email,
+      googleId: identity.subject,
+      avatar: identity.picture,
+      role: "attendee",
+    });
+    return { token: createAccessToken(user.id, user.role), user };
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      const user = await User.findOne({ googleId: identity.subject });
+      if (user?.isActive) {
+        return { token: createAccessToken(user.id, user.role), user };
+      }
+      throw googleAccountConflict();
+    }
+    throw error;
+  }
+};
+
+export const linkGoogleAccount = async (
+  userId: string,
+  idToken: string,
+  verifyToken: GoogleTokenVerifier = verifyGoogleIdToken,
+): Promise<IUser> => {
+  const [identity, user] = await Promise.all([
+    verifyToken(idToken),
+    User.findById(userId).select("+googleId"),
+  ]);
+
+  if (!user?.isActive) throw new HttpError(404, "User not found");
+  if (identity.email !== user.email) {
+    throw new HttpError(
+      409,
+      "Google email must match your EventYatwon account email",
+    );
+  }
+  if (user.googleId && user.googleId !== identity.subject) {
+    throw new HttpError(409, "A different Google account is already linked");
+  }
+
+  const googleOwner = await User.findOne({ googleId: identity.subject });
+  if (googleOwner && googleOwner.id !== user.id) {
+    throw new HttpError(409, "This Google account is already linked");
+  }
+
+  user.googleId = identity.subject;
+  if (!user.avatar && identity.picture) user.avatar = identity.picture;
+
+  try {
+    return await user.save();
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      throw new HttpError(409, "This Google account is already linked");
+    }
+    throw error;
+  }
 };
 
 export const getUserById = async (userId: string): Promise<IUser> => {

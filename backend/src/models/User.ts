@@ -7,7 +7,8 @@ export interface IUser extends Document {
   id: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
+  googleId?: string;
   avatar?: string;
   avatarPublicId?: string;
   role: UserRole;
@@ -37,8 +38,13 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters"],
+      select: false,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
       select: false,
     },
     avatar: {
@@ -71,7 +77,7 @@ userSchema.index({ role: 1, isActive: 1 });
 userSchema.index({ createdAt: -1 });
 
 userSchema.pre("save", async function hashPassword() {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     return;
   }
 
@@ -81,7 +87,9 @@ userSchema.pre("save", async function hashPassword() {
 userSchema.methods.comparePassword = function comparePassword(
   candidatePassword: string,
 ): Promise<boolean> {
-  return compare(candidatePassword, this.password);
+  return this.password
+    ? compare(candidatePassword, this.password)
+    : Promise.resolve(false);
 };
 
 export const User =

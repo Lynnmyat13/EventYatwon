@@ -179,6 +179,16 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/recommended",
+        element: (
+          <RoleProtectedRoute roles={["attendee"]}>
+            <Suspense fallback={<AdminLoader />}>
+              <RecommendedEventsPage />
+            </Suspense>
+          </RoleProtectedRoute>
+        ),
+      },
+      {
         path: "/my-events",
         element: (
           <RoleProtectedRoute roles={["attendee"]}>
@@ -264,16 +274,6 @@ const router = createBrowserRouter([
           <Suspense fallback={<AdminLoader />}>
             <EventCalendarPage />
           </Suspense>
-        ),
-      },
-      {
-        path: "recommended",
-        element: (
-          <RoleProtectedRoute roles={["attendee"]}>
-            <Suspense fallback={<AdminLoader />}>
-              <RecommendedEventsPage />
-            </Suspense>
-          </RoleProtectedRoute>
         ),
       },
       {

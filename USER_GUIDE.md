@@ -25,7 +25,7 @@ EventYatwon has three account roles.
 | Role          | Main purpose                                                                                       | How the account is created                                                                   |
 | ------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Visitor       | Browse published events, organizers, reviews, the calendar, help articles, and support             | No account required                                                                          |
-| Attendee      | Register for events, receive tickets, save events, get recommendations, and write eligible reviews | Select **Attendee** on the public registration page                                          |
+| Attendee      | Register for events, receive tickets, save events, get recommendations, and write eligible reviews | Select **Attendee** on the public registration page or continue with Google                  |
 | Organizer     | Create, publish, update, analyze, and operate events                                               | Select **Organizer** on the public registration page                                         |
 | Administrator | Monitor users, events, categories, and platform activity                                           | Created privately by the system administrator; admin is not available on public registration |
 
@@ -44,6 +44,8 @@ Permissions are enforced by the server. A user cannot access another role's prot
 
 Use an attendee account if you want to join events. Use an organizer account if you want to create and operate events. The account role is not changed from the profile page.
 
+Alternatively, select **Continue with Google** and choose a verified Google account. New Google registrations are always created as attendee accounts. To create an organizer account, use the email-and-password form and select **Organizer**.
+
 ### Log in
 
 1. Select **Log in**.
@@ -51,6 +53,10 @@ Use an attendee account if you want to join events. Use an organizer account if 
 3. Select **Log in**.
 
 After login, use the account menu in the top navigation or the account sidebar to open role-specific pages.
+
+You can also select **Continue with Google**. EventYatwon verifies the Google account and then creates its normal application session. Existing linked accounts keep their original attendee, organizer, or administrator role.
+
+If the Google email already belongs to an existing password account, EventYatwon does not merge the accounts automatically. Enter the existing account password when prompted to confirm ownership and link Google securely. Future logins can then use either supported method.
 
 ### Log out
 
@@ -508,6 +514,8 @@ Never include your password or full QR token.
 ## 10. Security and privacy
 
 - Passwords are hashed and are not stored as plain text.
+- Google ID tokens are verified by the backend and are not stored in the database or used as EventYatwon access tokens.
+- Google registration cannot assign organizer or administrator privileges; new Google accounts are attendees.
 - Authentication and role checks are enforced by the backend.
 - Ticket QR tokens are unique and should be treated as private.
 - Do not post ticket screenshots or QR codes publicly.
@@ -527,6 +535,13 @@ Check whether:
 - The event or selected ticket type is sold out.
 - You already registered for this event.
 - The selected quantity exceeds remaining capacity.
+
+### Google sign-in is unavailable
+
+- Confirm that the Google account chooser was not cancelled.
+- Allow pop-ups for the EventYatwon site, then try again.
+- If the email already has a password account, log in with that password to complete secure account linking.
+- If Google reports a configuration or origin error, contact the site administrator with the page URL and error message.
 
 ### I cannot find my ticket
 

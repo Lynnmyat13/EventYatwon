@@ -34,6 +34,25 @@ export const login = async (input: LoginInput): Promise<AuthData> => {
   return response.data.data;
 };
 
+export const loginWithGoogle = async (
+  credential: string,
+): Promise<AuthData> => {
+  const response = await api.post<ApiResponse<AuthData>>("/auth/google", {
+    credential,
+  });
+  return response.data.data;
+};
+
+export const linkGoogleAccount = async (
+  credential: string,
+): Promise<User> => {
+  const response = await api.post<ApiResponse<{ user: User }>>(
+    "/auth/google/link",
+    { credential },
+  );
+  return response.data.data.user;
+};
+
 export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get<ApiResponse<{ user: User }>>("/auth/me");
   return response.data.data.user;
@@ -86,3 +105,8 @@ export const getApiErrorMessage = (
 
   return error.response.data?.message || fallback;
 };
+
+export const getApiErrorCode = (error: unknown): string | undefined =>
+  axios.isAxiosError<ApiErrorResponse>(error)
+    ? error.response?.data?.code
+    : undefined;

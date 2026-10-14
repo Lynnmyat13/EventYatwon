@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -15,6 +15,7 @@ import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { SEARCH_DEBOUNCE_DELAY, useDebounce } from "@/hooks/useDebounce";
 import { queryKeys } from "@/lib/query-keys";
 import { getEventErrorMessage, getEvents } from "@/services/events";
 import { getMyFavorites } from "@/services/favorites";
@@ -45,14 +46,28 @@ const EventSkeleton = () => (
 export function EventsPage() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = positivePage(searchParams.get("page"));
+  const urlSearch = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const debouncedSearch = useDebounce(
+    searchInput,
+    SEARCH_DEBOUNCE_DELAY,
+  ).trim();
+  const effectiveSearch = searchInput.trim() ? debouncedSearch : "";
+  const previousUrlSearch = useRef(urlSearch);
+  const urlSearchChanged = useRef(false);
+  const page =
+    effectiveSearch === urlSearch.trim()
+      ? positivePage(searchParams.get("page"))
+      : 1;
   const sort: EventSort =
     searchParams.get("sort") === "newest" ? "newest" : "date";
-  const hasFilters = [...searchParams.keys()].some((key) => key !== "page");
+  const hasFilters =
+    Boolean(searchInput.trim()) ||
+    [...searchParams.keys()].some((key) => key !== "page" && key !== "search");
   const filters: EventQuery = {
     page,
     sort,
-    search: searchParams.get("search") || undefined,
+    search: effectiveSearch || undefined,
     category: searchParams.get("category") || undefined,
     date: searchParams.get("date") || undefined,
     minPrice: searchParams.get("minPrice") || undefined,
@@ -82,6 +97,27 @@ export function EventsPage() {
       : null
     : noFavorites;
 
+  useEffect(() => {
+    if (previousUrlSearch.current === urlSearch) return;
+    previousUrlSearch.current = urlSearch;
+    urlSearchChanged.current = true;
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  useEffect(() => {
+    if (urlSearchChanged.current) {
+      urlSearchChanged.current = false;
+      return;
+    }
+    if (effectiveSearch === urlSearch.trim()) return;
+
+    const next = new URLSearchParams(searchParams);
+    if (effectiveSearch) next.set("search", effectiveSearch);
+    else next.delete("search");
+    next.delete("page");
+    setSearchParams(next, { replace: true });
+  }, [effectiveSearch, searchParams, setSearchParams, urlSearch]);
+
   const setFilter = (name: string, value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(name, value);
@@ -98,12 +134,9 @@ export function EventsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = String(
-      new FormData(event.currentTarget).get("search") ?? "",
-    ).trim();
-    setFilter("search", value);
+  const clearFilters = () => {
+    setSearchInput("");
+    setSearchParams({});
   };
 
   const data = eventsQuery.data;
@@ -126,10 +159,7 @@ export function EventsPage() {
       </div>
 
       <div className="bg-muted/25 mt-10 border-y py-5">
-        <form
-          onSubmit={submitSearch}
-          className="grid gap-4 lg:grid-cols-[minmax(16rem,2fr)_1fr_1fr_1fr_1fr_auto] lg:items-end"
-        >
+        <div className="grid gap-4 lg:grid-cols-[minmax(16rem,2fr)_1fr_1fr_1fr_1fr_auto] lg:items-end">
           <div>
             <label
               htmlFor="event-search"
@@ -137,24 +167,18 @@ export function EventsPage() {
             >
               Search
             </label>
-            <div className="flex gap-2">
-              <div className="relative min-w-0 flex-1">
-                <Search
-                  aria-hidden="true"
-                  className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                />
-                <Input
-                  key={searchParams.get("search") ?? ""}
-                  id="event-search"
-                  name="search"
-                  defaultValue={searchParams.get("search") ?? ""}
-                  placeholder="Search event titles"
-                  className="pl-9"
-                />
-              </div>
-              <Button type="submit" className="h-11 px-4">
-                Search
-              </Button>
+            <div className="relative min-w-0">
+              <Search
+                aria-hidden="true"
+                className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <Input
+                id="event-search"
+                value={searchInput}
+                placeholder="Search event titles"
+                className="pl-9"
+                onChange={(event) => setSearchInput(event.target.value)}
+              />
             </div>
           </div>
 
@@ -251,13 +275,13 @@ export function EventsPage() {
               <option value="newest">Newest added</option>
             </select>
           </div>
-        </form>
+        </div>
 
         {hasFilters && (
           <Button
             variant="ghost"
             className="mt-4 h-9 px-2"
-            onClick={() => setSearchParams({})}
+            onClick={clearFilters}
           >
             <RotateCcw aria-hidden="true" className="size-4" /> Clear filters
           </Button>
@@ -370,7 +394,7 @@ export function EventsPage() {
               <Button
                 variant="outline"
                 className="mt-5 h-10 px-4"
-                onClick={() => setSearchParams({})}
+                onClick={clearFilters}
               >
                 <RotateCcw aria-hidden="true" className="size-4" /> Clear
                 filters
