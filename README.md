@@ -1,5 +1,4 @@
 # EventYatwon
-<<<<<<< HEAD
 
 EventYatwon is a full-stack event discovery, registration, digital ticketing, and event-management platform. It supports public event browsing, attendee registration and QR tickets, organizer operations and analytics, and role-protected administration.
 
